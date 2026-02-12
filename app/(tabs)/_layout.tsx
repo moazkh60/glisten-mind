@@ -13,7 +13,12 @@ export default function TabLayout() {
         tabBarButton: HapticTab,
         tabBarActiveTintColor: GlistenColors.primary,
         tabBarInactiveTintColor: GlistenColors.textMuted,
-        tabBarShowLabel: false,
+        tabBarShowLabel: true,
+        tabBarLabelStyle: {
+          fontSize: 10,
+          fontFamily: 'Inter_600SemiBold',
+          letterSpacing: 0.5,
+        },
         tabBarStyle: {
           backgroundColor: GlistenColors.surface,
           borderTopColor: GlistenColors.surfaceBorder,
@@ -39,9 +44,9 @@ export default function TabLayout() {
       <Tabs.Screen
         name="exercises"
         options={{
-          title: 'Exercises',
+          title: 'Flow',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'fitness' : 'fitness-outline'} size={24} color={color} />
+            <Ionicons name={focused ? 'flame' : 'flame-outline'} size={24} color={color} />
           ),
         }}
       />
