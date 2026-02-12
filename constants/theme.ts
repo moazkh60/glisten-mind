@@ -1,53 +1,73 @@
 /**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
+ * Glisten Mind — Dark night-sky theme for a calming destress app.
  */
 
 import { Platform } from 'react-native';
 
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
-
 export const Colors = {
   light: {
-    text: '#11181C',
-    background: '#fff',
-    tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
-    tabIconSelected: tintColorLight,
+    // App is dark-only, but we keep this for compatibility
+    text: '#E8E4FF',
+    background: '#0D0B1A',
+    tint: '#8B80F9',
+    icon: '#9490B8',
+    tabIconDefault: '#9490B8',
+    tabIconSelected: '#8B80F9',
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
-    tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
+    text: '#E8E4FF',
+    background: '#0D0B1A',
+    tint: '#8B80F9',
+    icon: '#9490B8',
+    tabIconDefault: '#9490B8',
+    tabIconSelected: '#8B80F9',
   },
+};
+
+/** Glisten Mind palette */
+export const GlistenColors = {
+  background: '#0D0B1A',
+  surface: '#1A1730',
+  surfaceGlass: 'rgba(40, 35, 75, 0.5)',
+  surfaceBorder: 'rgba(120, 110, 180, 0.15)',
+  primary: '#8B80F9',
+  primaryMuted: '#5A4FCF',
+  textPrimary: '#E8E4FF',
+  textSecondary: '#9490B8',
+  textMuted: '#6B6890',
+  orbGlow: '#6C5CE7',
+  orbEdge: '#1A1730',
+  scoreGreen: '#7BEDA0',
+  heartPink: '#F97B9D',
+  breathBlue: '#7BB8ED',
 };
 
 export const Fonts = Platform.select({
   ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
+    sans: 'Inter_400Regular',
+    sansMedium: 'Inter_500Medium',
+    sansSemiBold: 'Inter_600SemiBold',
+    sansBold: 'Inter_700Bold',
     serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
     rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
     mono: 'ui-monospace',
   },
   default: {
-    sans: 'normal',
+    sans: 'Inter_400Regular',
+    sansMedium: 'Inter_500Medium',
+    sansSemiBold: 'Inter_600SemiBold',
+    sansBold: 'Inter_700Bold',
     serif: 'serif',
     rounded: 'normal',
     mono: 'monospace',
   },
   web: {
-    sans: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+    sans: "'Inter', system-ui, -apple-system, sans-serif",
+    sansMedium: "'Inter', system-ui, -apple-system, sans-serif",
+    sansSemiBold: "'Inter', system-ui, -apple-system, sans-serif",
+    sansBold: "'Inter', system-ui, -apple-system, sans-serif",
     serif: "Georgia, 'Times New Roman', serif",
-    rounded: "'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif",
-    mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
+    rounded: "system-ui, sans-serif",
+    mono: "SFMono-Regular, Menlo, Monaco, monospace",
   },
 });
