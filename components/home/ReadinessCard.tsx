@@ -5,6 +5,7 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 interface ReadinessCardProps {
+    hasData?: boolean;
     title?: string;
     score?: number;
     hrv?: number;
@@ -12,6 +13,7 @@ interface ReadinessCardProps {
 }
 
 export function ReadinessCard({
+    hasData = false,
     title = 'Deep Stillness',
     score = 88,
     hrv = 94,
@@ -30,44 +32,59 @@ export function ReadinessCard({
                 {/* Header */}
                 <Text style={styles.sectionLabel}>NIGHTLY READINESS</Text>
 
-                {/* Score row */}
-                <View style={styles.scoreRow}>
-                    <Text style={styles.title}>{title}</Text>
-                    <Text style={styles.scoreValue}>{score}</Text>
-                </View>
-
-                {/* Progress bar */}
-                <View style={styles.progressTrack}>
-                    <LinearGradient
-                        colors={[GlistenColors.primaryMuted, GlistenColors.primary]}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 0 }}
-                        style={[styles.progressFill, { width: progressWidth as any }]}
-                    />
-                </View>
-
-                {/* Metrics row */}
-                <View style={styles.metricsRow}>
-                    <View style={styles.metric}>
-                        <View style={[styles.metricIcon, { backgroundColor: 'rgba(249, 123, 157, 0.15)' }]}>
-                            <Ionicons name="heart" size={14} color={GlistenColors.heartPink} />
+                {hasData ? (
+                    <>
+                        {/* Score row */}
+                        <View style={styles.scoreRow}>
+                            <Text style={styles.title}>{title}</Text>
+                            <Text style={styles.scoreValue}>{score}</Text>
                         </View>
-                        <View>
-                            <Text style={styles.metricLabel}>HRV</Text>
-                            <Text style={styles.metricValue}>{hrv} ms</Text>
+
+                        {/* Progress bar */}
+                        <View style={styles.progressTrack}>
+                            <LinearGradient
+                                colors={[GlistenColors.primaryMuted, GlistenColors.primary]}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 0 }}
+                                style={[styles.progressFill, { width: progressWidth as any }]}
+                            />
                         </View>
+
+                        {/* Metrics row */}
+                        <View style={styles.metricsRow}>
+                            <View style={styles.metric}>
+                                <View style={[styles.metricIcon, { backgroundColor: 'rgba(249, 123, 157, 0.15)' }]}>
+                                    <Ionicons name="heart" size={14} color={GlistenColors.heartPink} />
+                                </View>
+                                <View>
+                                    <Text style={styles.metricLabel}>HRV</Text>
+                                    <Text style={styles.metricValue}>{hrv} ms</Text>
+                                </View>
+                            </View>
+
+                            <View style={styles.metric}>
+                                <View style={[styles.metricIcon, { backgroundColor: 'rgba(123, 184, 237, 0.15)' }]}>
+                                    <Ionicons name="water" size={14} color={GlistenColors.breathBlue} />
+                                </View>
+                                <View>
+                                    <Text style={styles.metricLabel}>BREATH</Text>
+                                    <Text style={styles.metricValue}>{breathRate} bpm</Text>
+                                </View>
+                            </View>
+                        </View>
+                    </>
+                ) : (
+                    /* Empty state */
+                    <View style={styles.emptyState}>
+                        <View style={styles.emptyIconWrap}>
+                            <Ionicons name="sparkles-outline" size={28} color={GlistenColors.primary} />
+                        </View>
+                        <Text style={styles.emptyTitle}>Begin your journey</Text>
+                        <Text style={styles.emptySubtitle}>
+                            Complete your first session to unlock your readiness score and track your progress.
+                        </Text>
                     </View>
-
-                    <View style={styles.metric}>
-                        <View style={[styles.metricIcon, { backgroundColor: 'rgba(123, 184, 237, 0.15)' }]}>
-                            <Ionicons name="water" size={14} color={GlistenColors.breathBlue} />
-                        </View>
-                        <View>
-                            <Text style={styles.metricLabel}>BREATH</Text>
-                            <Text style={styles.metricValue}>{breathRate} bpm</Text>
-                        </View>
-                    </View>
-                </View>
+                )}
             </LinearGradient>
         </View>
     );
@@ -145,5 +162,33 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontFamily: Fonts?.sansSemiBold,
         color: GlistenColors.textPrimary,
+    },
+    // Empty state
+    emptyState: {
+        alignItems: 'center',
+        paddingVertical: 16,
+        gap: 8,
+    },
+    emptyIconWrap: {
+        width: 52,
+        height: 52,
+        borderRadius: 26,
+        backgroundColor: 'rgba(139, 128, 249, 0.1)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 4,
+    },
+    emptyTitle: {
+        fontSize: 18,
+        fontFamily: Fonts?.sansSemiBold,
+        color: GlistenColors.textPrimary,
+    },
+    emptySubtitle: {
+        fontSize: 13,
+        fontFamily: Fonts?.sans,
+        color: GlistenColors.textSecondary,
+        textAlign: 'center',
+        lineHeight: 18,
+        paddingHorizontal: 8,
     },
 });

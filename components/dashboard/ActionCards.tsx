@@ -9,6 +9,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 interface ActionCard {
     id: string;
     label: string;
+    subtitle: string;
     icon: keyof typeof Ionicons.glyphMap;
     onPress: () => void;
 }
@@ -18,6 +19,7 @@ export function ActionCards() {
         {
             id: 'breathe',
             label: 'Breathe',
+            subtitle: 'Guided patterns',
             icon: 'swap-horizontal',
             onPress: () => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -27,6 +29,7 @@ export function ActionCards() {
         {
             id: 'stimulate',
             label: 'Stimulate',
+            subtitle: 'Vagus activation',
             icon: 'radio-outline',
             onPress: () => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -53,6 +56,7 @@ export function ActionCards() {
                             <Ionicons name={card.icon} size={22} color={GlistenColors.primary} />
                         </View>
                         <Text style={styles.label}>{card.label}</Text>
+                        <Text style={styles.subtitle}>{card.subtitle}</Text>
                     </LinearGradient>
                 </Pressable>
             ))}
@@ -78,7 +82,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         borderRadius: 20,
         alignItems: 'center',
-        gap: 10,
+        gap: 6,
     },
     iconWrap: {
         width: 46,
@@ -87,10 +91,16 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(139, 128, 249, 0.12)',
         justifyContent: 'center',
         alignItems: 'center',
+        marginBottom: 4,
     },
     label: {
-        fontSize: 13,
+        fontSize: 14,
         fontFamily: Fonts?.sansSemiBold,
         color: GlistenColors.textPrimary,
+    },
+    subtitle: {
+        fontSize: 11,
+        fontFamily: Fonts?.sans,
+        color: GlistenColors.textSecondary,
     },
 });

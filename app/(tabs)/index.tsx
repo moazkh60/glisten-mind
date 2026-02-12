@@ -1,6 +1,7 @@
 import { BreathingOrb } from '@/components/home/BreathingOrb';
 import { HomeHeader } from '@/components/home/HomeHeader';
 import { ReadinessCard } from '@/components/home/ReadinessCard';
+import { TipCard } from '@/components/home/TipCard';
 import { Fonts, GlistenColors } from '@/constants/theme';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -30,8 +31,11 @@ export default function HomeScreen() {
         {/* Breathing orb */}
         <BreathingOrb />
 
-        {/* Readiness card */}
+        {/* Readiness card (empty state by default, pass hasData={true} when data exists) */}
         <ReadinessCard />
+
+        {/* Contextual tip */}
+        <TipCard />
       </ScrollView>
     </View>
   );

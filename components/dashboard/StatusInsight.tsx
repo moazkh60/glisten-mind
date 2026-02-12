@@ -3,6 +3,7 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 interface StatusInsightProps {
+    hasData?: boolean;
     title?: string;
     subtitle?: string;
     activeDot?: number;
@@ -10,11 +11,19 @@ interface StatusInsightProps {
 }
 
 export function StatusInsight({
-    title = 'Your parasympathetic nervous system is optimal for rest.',
-    subtitle = 'Heart rate variability shows high resilience tonight.',
+    hasData = false,
+    title,
+    subtitle,
     activeDot = 0,
     totalDots = 4,
 }: StatusInsightProps) {
+    const displayTitle = hasData
+        ? (title ?? 'Your parasympathetic nervous system is optimal for rest.')
+        : 'Start a session to discover your nervous system state.';
+    const displaySubtitle = hasData
+        ? (subtitle ?? 'Heart rate variability shows high resilience tonight.')
+        : 'Your first breathing session will begin building your baseline.';
+
     return (
         <View style={styles.container}>
             {/* Pagination dots */}
@@ -27,8 +36,8 @@ export function StatusInsight({
                 ))}
             </View>
 
-            <Text style={styles.title}>{title}</Text>
-            <Text style={styles.subtitle}>{subtitle}</Text>
+            <Text style={styles.title}>{displayTitle}</Text>
+            <Text style={styles.subtitle}>{displaySubtitle}</Text>
         </View>
     );
 }

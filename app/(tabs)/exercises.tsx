@@ -1,5 +1,6 @@
 import { ActionCards } from '@/components/dashboard/ActionCards';
 import { DriftButton } from '@/components/dashboard/DriftButton';
+import { QuickStats } from '@/components/dashboard/QuickStats';
 import { StatusInsight } from '@/components/dashboard/StatusInsight';
 import { ToneRing } from '@/components/dashboard/ToneRing';
 import { Fonts, GlistenColors } from '@/constants/theme';
@@ -15,6 +16,9 @@ export default function FlowScreen() {
     const hour = new Date().getHours();
     const greeting = hour < 12 ? 'Morning' : hour < 17 ? 'Afternoon' : 'Evening';
 
+    // Time-based mode label
+    const mode = hour >= 20 || hour < 6 ? 'NIGHTFALL' : hour >= 17 ? 'DUSK' : 'DAYLIGHT';
+
     return (
         <View style={[styles.container, { paddingTop: insets.top }]}>
             <ScrollView
@@ -24,7 +28,7 @@ export default function FlowScreen() {
                 {/* Header */}
                 <View style={styles.header}>
                     <View>
-                        <Text style={styles.headerLabel}>VAGUS SYNC • NIGHTFALL</Text>
+                        <Text style={styles.headerLabel}>VAGUS SYNC • {mode}</Text>
                         <Text style={styles.greeting}>{greeting}, Alex</Text>
                     </View>
                     <Pressable style={styles.settingsBtn}>
@@ -34,14 +38,21 @@ export default function FlowScreen() {
 
                 {/* Tone Ring */}
                 <View style={styles.ringSection}>
-                    <ToneRing score={82} label="DEEP CALM" />
+                    <ToneRing />
                 </View>
 
-                {/* Status */}
-                <StatusInsight />
+                {/* Quick Stats */}
+                <View style={styles.section}>
+                    <QuickStats />
+                </View>
+
+                {/* Status Insight */}
+                <View style={styles.section}>
+                    <StatusInsight />
+                </View>
 
                 {/* Action Cards */}
-                <View style={styles.cardsSection}>
+                <View style={styles.section}>
                     <ActionCards />
                 </View>
             </ScrollView>
@@ -95,10 +106,10 @@ const styles = StyleSheet.create({
     },
     ringSection: {
         marginTop: 8,
-        marginBottom: 16,
+        marginBottom: 12,
     },
-    cardsSection: {
-        marginTop: 20,
+    section: {
+        marginBottom: 18,
     },
     bottomCta: {
         position: 'absolute',
