@@ -3,9 +3,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-// Mock: days the user practiced this month (1-indexed)
-const ACTIVE_DAYS = new Set([1, 2, 5, 6, 7, 8, 9, 12, 13, 14, 15, 16, 19, 20]);
-
 const DAY_HEADERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
 function getMonthData() {
@@ -14,25 +11,28 @@ function getMonthData() {
     const month = now.getMonth();
     const monthName = now.toLocaleString('default', { month: 'long' });
 
-    // First day of month (0=Sun, 6=Sat)
     const firstDayOfWeek = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const today = now.getDate();
 
-    return { monthName, firstDayOfWeek, daysInMonth };
+    return { monthName, firstDayOfWeek, daysInMonth, today };
 }
 
-export function CalendarHeatmap() {
-    const { monthName, firstDayOfWeek, daysInMonth } = getMonthData();
+interface CalendarHeatmapProps {
+    activeDays: Set<number>;
+}
+
+export function CalendarHeatmap({ activeDays }: CalendarHeatmapProps) {
+    const { monthName, firstDayOfWeek, daysInMonth, today } = getMonthData();
 
     // Build grid cells
     const cells: (number | null)[] = [];
     for (let i = 0; i < firstDayOfWeek; i++) {
-        cells.push(null); // empty cells before first day
+        cells.push(null);
     }
     for (let d = 1; d <= daysInMonth; d++) {
         cells.push(d);
     }
-    // Pad to full rows
     while (cells.length % 7 !== 0) {
         cells.push(null);
     }
@@ -42,6 +42,8 @@ export function CalendarHeatmap() {
         rows.push(cells.slice(i, i + 7));
     }
 
+    const activeDaysCount = activeDays.size;
+
     return (
         <View style={styles.outer}>
             <LinearGradient
@@ -50,7 +52,12 @@ export function CalendarHeatmap() {
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
             >
-                <Text style={styles.monthTitle}>{monthName}</Text>
+                <View style={styles.headerRow}>
+                    <Text style={styles.monthTitle}>{monthName}</Text>
+                    <Text style={styles.activeBadge}>
+                        {activeDaysCount} {activeDaysCount === 1 ? 'day' : 'days'} active
+                    </Text>
+                </View>
 
                 {/* Day headers */}
                 <View style={styles.row}>
@@ -70,13 +77,17 @@ export function CalendarHeatmap() {
                                     <View
                                         style={[
                                             styles.dayDot,
-                                            ACTIVE_DAYS.has(day) ? styles.dayActive : styles.dayInactive,
+                                            activeDays.has(day)
+                                                ? styles.dayActive
+                                                : styles.dayInactive,
+                                            day === today && styles.dayToday,
                                         ]}
                                     >
                                         <Text
                                             style={[
                                                 styles.dayText,
-                                                ACTIVE_DAYS.has(day) && styles.dayTextActive,
+                                                activeDays.has(day) && styles.dayTextActive,
+                                                day === today && styles.dayTextToday,
                                             ]}
                                         >
                                             {day}
@@ -104,11 +115,21 @@ const styles = StyleSheet.create({
         padding: 16,
         borderRadius: 16,
     },
+    headerRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 12,
+    },
     monthTitle: {
         fontSize: 16,
         fontFamily: Fonts?.sansBold,
         color: GlistenColors.textPrimary,
-        marginBottom: 12,
+    },
+    activeBadge: {
+        fontSize: 11,
+        fontFamily: Fonts?.sansSemiBold,
+        color: GlistenColors.textSecondary,
     },
     row: {
         flexDirection: 'row',
@@ -138,6 +159,10 @@ const styles = StyleSheet.create({
     dayInactive: {
         backgroundColor: 'transparent',
     },
+    dayToday: {
+        borderWidth: 1.5,
+        borderColor: GlistenColors.primary,
+    },
     dayText: {
         fontSize: 12,
         fontFamily: Fonts?.sans,
@@ -146,5 +171,9 @@ const styles = StyleSheet.create({
     dayTextActive: {
         color: GlistenColors.primary,
         fontFamily: Fonts?.sansSemiBold,
+    },
+    dayTextToday: {
+        color: GlistenColors.textPrimary,
+        fontFamily: Fonts?.sansBold,
     },
 });

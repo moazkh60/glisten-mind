@@ -4,23 +4,44 @@ import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-interface Stat {
+interface StatItem {
     label: string;
     value: string;
     icon: keyof typeof Ionicons.glyphMap;
     iconColor: string;
 }
 
-const STATS: Stat[] = [
-    { label: 'Total Sessions', value: '47', icon: 'leaf', iconColor: '#7BEDA0' },
-    { label: 'Minutes', value: '312', icon: 'time-outline', iconColor: '#8B80F9' },
-    { label: 'Best Streak', value: '21', icon: 'trophy', iconColor: '#F9A87B' },
-];
+interface LifetimeStatsProps {
+    totalSessions: number;
+    totalMinutes: number;
+    bestStreak: number;
+}
 
-export function LifetimeStats() {
+export function LifetimeStats({ totalSessions, totalMinutes, bestStreak }: LifetimeStatsProps) {
+    const stats: StatItem[] = [
+        {
+            label: 'Total Sessions',
+            value: totalSessions > 0 ? `${totalSessions}` : '--',
+            icon: 'leaf',
+            iconColor: '#7BEDA0',
+        },
+        {
+            label: 'Minutes',
+            value: totalMinutes > 0 ? `${totalMinutes}` : '--',
+            icon: 'time-outline',
+            iconColor: '#8B80F9',
+        },
+        {
+            label: 'Best Streak',
+            value: bestStreak > 0 ? `${bestStreak}` : '--',
+            icon: 'trophy',
+            iconColor: '#F9A87B',
+        },
+    ];
+
     return (
         <View style={styles.row}>
-            {STATS.map((stat) => (
+            {stats.map((stat) => (
                 <View key={stat.label} style={styles.cardOuter}>
                     <LinearGradient
                         colors={['rgba(40, 35, 75, 0.6)', 'rgba(26, 23, 48, 0.8)']}
@@ -30,7 +51,9 @@ export function LifetimeStats() {
                     >
                         <Ionicons name={stat.icon} size={18} color={stat.iconColor} />
                         <Text style={styles.label}>{stat.label}</Text>
-                        <Text style={styles.value}>{stat.value}</Text>
+                        <Text style={[styles.value, stat.value === '--' && styles.valueMuted]}>
+                            {stat.value}
+                        </Text>
                     </LinearGradient>
                 </View>
             ))}
@@ -67,5 +90,8 @@ const styles = StyleSheet.create({
         fontSize: 22,
         fontFamily: Fonts?.sansBold,
         color: GlistenColors.textPrimary,
+    },
+    valueMuted: {
+        color: GlistenColors.textMuted,
     },
 });

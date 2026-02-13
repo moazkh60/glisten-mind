@@ -4,20 +4,24 @@ import { QuickStats } from '@/components/dashboard/QuickStats';
 import { StatusInsight } from '@/components/dashboard/StatusInsight';
 import { ToneRing } from '@/components/dashboard/ToneRing';
 import { Fonts, GlistenColors } from '@/constants/theme';
-import { Ionicons } from '@expo/vector-icons';
+import { useSessionHistory } from '@/hooks/useSessionHistory';
+import { getReadinessTitle } from '@/utils/sessionStorage';
 import React from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function FlowScreen() {
     const insets = useSafeAreaInsets();
+    const { latestSession } = useSessionHistory();
 
     // Time-based greeting
     const hour = new Date().getHours();
-    const greeting = hour < 12 ? 'Morning' : hour < 17 ? 'Afternoon' : 'Evening';
+    const greeting = hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening';
 
     // Time-based mode label
     const mode = hour >= 20 || hour < 6 ? 'NIGHTFALL' : hour >= 17 ? 'DUSK' : 'DAYLIGHT';
+
+    const hasData = !!latestSession;
 
     return (
         <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -29,38 +33,39 @@ export default function FlowScreen() {
                 <View style={styles.header}>
                     <View>
                         <Text style={styles.headerLabel}>VAGUS SYNC • {mode}</Text>
-                        <Text style={styles.greeting}>{greeting}, Alex</Text>
+                        <Text style={styles.greeting}>{greeting}</Text>
                     </View>
-                    <Pressable style={styles.settingsBtn}>
-                        <Ionicons name="grid-outline" size={20} color={GlistenColors.textSecondary} />
-                    </Pressable>
                 </View>
 
                 {/* Tone Ring */}
                 <View style={styles.ringSection}>
-                    <ToneRing />
+                    <ToneRing
+                        hasData={hasData}
+                        score={latestSession?.score}
+                        label={latestSession ? getReadinessTitle(latestSession.patternId) : undefined}
+                    />
                 </View>
 
                 {/* Quick Stats */}
                 <View style={styles.section}>
-                    <QuickStats />
+                    <QuickStats hasData={hasData} />
                 </View>
 
                 {/* Status Insight */}
                 <View style={styles.section}>
-                    <StatusInsight />
+                    <StatusInsight hasData={hasData} />
                 </View>
 
                 {/* Action Cards */}
                 <View style={styles.section}>
                     <ActionCards />
                 </View>
-            </ScrollView>
 
-            {/* Fixed bottom CTA */}
-            <View style={[styles.bottomCta, { paddingBottom: insets.bottom + 10 }]}>
-                <DriftButton />
-            </View>
+                {/* Combined session CTA */}
+                <View style={styles.ctaSection}>
+                    <DriftButton />
+                </View>
+            </ScrollView>
         </View>
     );
 }
@@ -71,15 +76,15 @@ const styles = StyleSheet.create({
         backgroundColor: GlistenColors.background,
     },
     scrollContent: {
-        paddingBottom: 100,
+        paddingBottom: 30,
     },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'flex-start',
         paddingHorizontal: 20,
-        paddingTop: 12,
-        paddingBottom: 8,
+        paddingTop: 8,
+        paddingBottom: 4,
     },
     headerLabel: {
         fontSize: 10,
@@ -93,30 +98,15 @@ const styles = StyleSheet.create({
         fontFamily: Fonts?.sans,
         color: GlistenColors.textPrimary,
     },
-    settingsBtn: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
-        backgroundColor: GlistenColors.surfaceGlass,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginTop: 4,
-        borderWidth: 1,
-        borderColor: GlistenColors.surfaceBorder,
-    },
     ringSection: {
-        marginTop: 8,
-        marginBottom: 12,
+        marginTop: 4,
+        marginBottom: 8,
     },
     section: {
-        marginBottom: 18,
+        marginBottom: 14,
     },
-    bottomCta: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        paddingTop: 12,
-        backgroundColor: GlistenColors.background,
+    ctaSection: {
+        marginTop: 8,
+        marginBottom: 16,
     },
 });

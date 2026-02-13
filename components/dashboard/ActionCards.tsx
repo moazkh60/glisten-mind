@@ -27,13 +27,13 @@ export function ActionCards() {
             },
         },
         {
-            id: 'stimulate',
-            label: 'Stimulate',
-            subtitle: 'Vagus activation',
-            icon: 'radio-outline',
+            id: 'restore',
+            label: 'Restore',
+            subtitle: 'Vagus nerve reset',
+            icon: 'eye-outline',
             onPress: () => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                // TODO: navigate to stimulation screen
+                router.push('/vagus-reset');
             },
         },
     ];

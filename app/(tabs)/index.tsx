@@ -3,12 +3,15 @@ import { HomeHeader } from '@/components/home/HomeHeader';
 import { ReadinessCard } from '@/components/home/ReadinessCard';
 import { TipCard } from '@/components/home/TipCard';
 import { Fonts, GlistenColors } from '@/constants/theme';
+import { useSessionHistory } from '@/hooks/useSessionHistory';
+import { getReadinessTitle } from '@/utils/sessionStorage';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
+  const { latestSession } = useSessionHistory();
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -31,8 +34,14 @@ export default function HomeScreen() {
         {/* Breathing orb */}
         <BreathingOrb />
 
-        {/* Readiness card (empty state by default, pass hasData={true} when data exists) */}
-        <ReadinessCard />
+        {/* Readiness card — shows real data after first session */}
+        <ReadinessCard
+          hasData={!!latestSession}
+          title={latestSession ? getReadinessTitle(latestSession.patternId) : undefined}
+          score={latestSession?.score}
+          hrv={latestSession?.hrv}
+          breathRate={latestSession?.breathRate}
+        />
 
         {/* Contextual tip */}
         <TipCard />

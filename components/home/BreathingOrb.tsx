@@ -3,7 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, {
     Easing,
@@ -21,12 +21,32 @@ import Svg, {
     LinearGradient as SvgGradient,
 } from 'react-native-svg';
 
+/** Labels mapped to 3-hour windows throughout the day */
+const TIME_LABELS = [
+    { start: 0, end: 3, label: 'INNER STILLNESS' },
+    { start: 3, end: 6, label: 'DEEP RESTORE' },
+    { start: 6, end: 9, label: 'GENTLE RESET' },
+    { start: 9, end: 12, label: 'CALM WITHIN' },
+    { start: 12, end: 15, label: 'BREATHE EASY' },
+    { start: 15, end: 18, label: 'QUIET FLOW' },
+    { start: 18, end: 21, label: 'SOFTLY DRIFT' },
+    { start: 21, end: 24, label: 'MINDFUL PAUSE' },
+];
+
+function getOrbLabel(): string {
+    const hour = new Date().getHours();
+    const match = TIME_LABELS.find((t) => hour >= t.start && hour < t.end);
+    return match?.label ?? 'MINDFUL PAUSE';
+}
+
 const ORB_SIZE = 200;
 const RING_1_SIZE = ORB_SIZE + 40;
 const RING_2_SIZE = ORB_SIZE + 80;
 const HOLLOW_RING_SIZE = ORB_SIZE + 12;
 
 export function BreathingOrb() {
+    const [orbLabel, setOrbLabel] = useState(getOrbLabel);
+
     const pulseScale1 = useSharedValue(1);
     const pulseOpacity1 = useSharedValue(0.3);
     const pulseScale2 = useSharedValue(1);
@@ -84,6 +104,12 @@ export function BreathingOrb() {
         );
     }, []);
 
+    // Refresh orb label every minute (for time-of-day changes)
+    useEffect(() => {
+        const interval = setInterval(() => setOrbLabel(getOrbLabel()), 60_000);
+        return () => clearInterval(interval);
+    }, []);
+
     const ring1Style = useAnimatedStyle(() => ({
         transform: [{ scale: pulseScale1.value }],
         opacity: pulseOpacity1.value,
@@ -99,7 +125,8 @@ export function BreathingOrb() {
     }));
 
     const handlePress = () => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+        setTimeout(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light), 100);
         router.push('/session');
     };
 
@@ -169,7 +196,7 @@ export function BreathingOrb() {
                         <Ionicons name="leaf" size={28} color={GlistenColors.textPrimary} />
                     </View>
                     <Text style={styles.beginLabel}>BEGIN SESSION</Text>
-                    <Text style={styles.durationLabel}>12 MIN DRIFT</Text>
+                    <Text style={styles.durationLabel}>{orbLabel}</Text>
                 </LinearGradient>
             </Pressable>
         </View>

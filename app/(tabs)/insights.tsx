@@ -3,8 +3,18 @@ import { RecentSessions } from '@/components/insights/RecentSessions';
 import { StatCards } from '@/components/insights/StatCards';
 import { VagusToneTracker } from '@/components/insights/VagusToneTracker';
 import { Fonts, GlistenColors } from '@/constants/theme';
+import {
+    SessionRecord,
+    getAllSessions,
+    getAverageHrv,
+    getDailyHrvData,
+    getHrvTrend,
+    getSessionsInRange,
+    getVagusToneScores,
+} from '@/utils/sessionStorage';
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import React, { useCallback, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -13,10 +23,28 @@ const TIME_RANGES = ['This Week', 'This Month', 'All Time'];
 export default function InsightsScreen() {
     const insets = useSafeAreaInsets();
     const [timeRange, setTimeRange] = useState(0);
+    const [allSessions, setAllSessions] = useState<SessionRecord[]>([]);
+
+    // Reload sessions whenever the screen comes into focus
+    useFocusEffect(
+        useCallback(() => {
+            (async () => {
+                const sessions = await getAllSessions();
+                setAllSessions(sessions);
+            })();
+        }, [])
+    );
 
     const cycleTimeRange = () => {
         setTimeRange((prev) => (prev + 1) % TIME_RANGES.length);
     };
+
+    // Derive all computed data from filtered sessions
+    const filtered = getSessionsInRange(allSessions, timeRange);
+    const { labels: hrvLabels, values: hrvValues } = getDailyHrvData(filtered);
+    const avgHrv = getAverageHrv(filtered);
+    const hrvTrend = getHrvTrend(filtered);
+    const toneScores = getVagusToneScores(filtered);
 
     return (
         <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -35,22 +63,26 @@ export default function InsightsScreen() {
 
                 {/* HRV Chart */}
                 <View style={styles.section}>
-                    <HrvChart />
+                    <HrvChart labels={hrvLabels} values={hrvValues} />
                 </View>
 
                 {/* Stat Cards */}
                 <View style={styles.section}>
-                    <StatCards />
+                    <StatCards
+                        avgHrv={avgHrv}
+                        sessionCount={filtered.length}
+                        hrvTrend={hrvTrend}
+                    />
                 </View>
 
                 {/* Vagus Tone Tracker */}
                 <View style={styles.section}>
-                    <VagusToneTracker />
+                    <VagusToneTracker scores={toneScores} />
                 </View>
 
                 {/* Recent Sessions */}
                 <View style={styles.section}>
-                    <RecentSessions />
+                    <RecentSessions sessions={filtered} />
                 </View>
             </ScrollView>
         </View>

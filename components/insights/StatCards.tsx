@@ -9,7 +9,7 @@ interface StatCardProps {
     value: string;
     icon: keyof typeof Ionicons.glyphMap;
     iconColor: string;
-    trend?: 'up' | 'down';
+    trend?: 'up' | 'down' | 'stable';
 }
 
 function StatCard({ label, value, icon, iconColor, trend }: StatCardProps) {
@@ -23,7 +23,7 @@ function StatCard({ label, value, icon, iconColor, trend }: StatCardProps) {
             >
                 <View style={styles.cardHeader}>
                     <Text style={styles.cardLabel}>{label}</Text>
-                    {trend && (
+                    {trend && trend !== 'stable' && (
                         <Ionicons
                             name={trend === 'up' ? 'arrow-up' : 'arrow-down'}
                             size={14}
@@ -32,25 +32,33 @@ function StatCard({ label, value, icon, iconColor, trend }: StatCardProps) {
                     )}
                     <Ionicons name={icon} size={16} color={iconColor} />
                 </View>
-                <Text style={styles.cardValue}>{value}</Text>
+                <Text style={[styles.cardValue, value === '--' && styles.cardValueMuted]}>
+                    {value}
+                </Text>
             </LinearGradient>
         </View>
     );
 }
 
-export function StatCards() {
+interface StatCardsProps {
+    avgHrv: number;
+    sessionCount: number;
+    hrvTrend: 'up' | 'down' | 'stable';
+}
+
+export function StatCards({ avgHrv, sessionCount, hrvTrend }: StatCardsProps) {
     return (
         <View style={styles.row}>
             <StatCard
                 label="Avg HRV"
-                value="87 ms"
-                icon="arrow-up"
-                iconColor="#7BEDA0"
-                trend="up"
+                value={avgHrv > 0 ? `${avgHrv} ms` : '--'}
+                icon="heart"
+                iconColor="#F97B9D"
+                trend={avgHrv > 0 ? hrvTrend : undefined}
             />
             <StatCard
                 label="Sessions"
-                value="12"
+                value={sessionCount > 0 ? `${sessionCount}` : '--'}
                 icon="flame"
                 iconColor="#F9A87B"
             />
@@ -91,5 +99,8 @@ const styles = StyleSheet.create({
         fontSize: 28,
         fontFamily: Fonts?.sansBold,
         color: GlistenColors.textPrimary,
+    },
+    cardValueMuted: {
+        color: GlistenColors.textMuted,
     },
 });

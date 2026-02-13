@@ -1,32 +1,26 @@
 import { Fonts, GlistenColors } from '@/constants/theme';
+import { MilestoneItem } from '@/utils/sessionStorage';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-interface Milestone {
-    id: string;
-    title: string;
-    icon: keyof typeof Ionicons.glyphMap;
-    unlocked: boolean;
+interface MilestonesProps {
+    milestones: MilestoneItem[];
 }
 
-const MILESTONES: Milestone[] = [
-    { id: '1', title: 'First Session', icon: 'leaf', unlocked: true },
-    { id: '2', title: '7 Day Streak', icon: 'flame', unlocked: true },
-    { id: '3', title: '1 Hour Total', icon: 'time', unlocked: true },
-    { id: '4', title: '30 Sessions', icon: 'star', unlocked: false },
-    { id: '5', title: 'Night Owl', icon: 'moon', unlocked: false },
-    { id: '6', title: 'Zen Master', icon: 'diamond', unlocked: false },
-];
+export function Milestones({ milestones }: MilestonesProps) {
+    const unlocked = milestones.filter((m) => m.unlocked).length;
 
-export function Milestones() {
     return (
         <View style={styles.container}>
-            <Text style={styles.sectionTitle}>Milestones</Text>
+            <View style={styles.headerRow}>
+                <Text style={styles.sectionTitle}>Milestones</Text>
+                <Text style={styles.countBadge}>{unlocked}/{milestones.length}</Text>
+            </View>
 
             <View style={styles.grid}>
-                {MILESTONES.map((m) => (
+                {milestones.map((m) => (
                     <View key={m.id} style={styles.badgeOuter}>
                         <LinearGradient
                             colors={
@@ -45,7 +39,7 @@ export function Milestones() {
                                 ]}
                             >
                                 <Ionicons
-                                    name={m.icon}
+                                    name={m.icon as keyof typeof Ionicons.glyphMap}
                                     size={20}
                                     color={m.unlocked ? GlistenColors.primary : GlistenColors.textMuted}
                                 />
@@ -58,6 +52,11 @@ export function Milestones() {
                             >
                                 {m.title}
                             </Text>
+                            {m.unlocked && (
+                                <View style={styles.checkWrap}>
+                                    <Ionicons name="checkmark-circle" size={14} color="#7BEDA0" />
+                                </View>
+                            )}
                         </LinearGradient>
                     </View>
                 ))}
@@ -70,11 +69,21 @@ const styles = StyleSheet.create({
     container: {
         paddingHorizontal: 20,
     },
+    headerRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 12,
+    },
     sectionTitle: {
         fontSize: 15,
         fontFamily: Fonts?.sansSemiBold,
         color: GlistenColors.textPrimary,
-        marginBottom: 12,
+    },
+    countBadge: {
+        fontSize: 12,
+        fontFamily: Fonts?.sansSemiBold,
+        color: GlistenColors.textSecondary,
     },
     grid: {
         flexDirection: 'row',
@@ -114,5 +123,10 @@ const styles = StyleSheet.create({
     },
     badgeTitleLocked: {
         color: GlistenColors.textMuted,
+    },
+    checkWrap: {
+        position: 'absolute',
+        top: 8,
+        right: 8,
     },
 });

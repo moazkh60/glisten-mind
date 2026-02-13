@@ -3,13 +3,40 @@ import { LifetimeStats } from '@/components/progress/LifetimeStats';
 import { Milestones } from '@/components/progress/Milestones';
 import { StreakRing } from '@/components/progress/StreakRing';
 import { Fonts, GlistenColors } from '@/constants/theme';
+import {
+    SessionRecord,
+    getActiveDaysThisMonth,
+    getAllSessions,
+    getBestStreak,
+    getCurrentStreak,
+    getMilestones,
+    getTotalMinutes,
+} from '@/utils/sessionStorage';
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
+import { useFocusEffect } from 'expo-router';
+import React, { useCallback, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function ProgressScreen() {
     const insets = useSafeAreaInsets();
+    const [sessions, setSessions] = useState<SessionRecord[]>([]);
+
+    useFocusEffect(
+        useCallback(() => {
+            (async () => {
+                const all = await getAllSessions();
+                setSessions(all);
+            })();
+        }, [])
+    );
+
+    // Derive all progress data
+    const streak = getCurrentStreak(sessions);
+    const bestStreak = getBestStreak(sessions);
+    const totalMinutes = getTotalMinutes(sessions);
+    const activeDays = getActiveDaysThisMonth(sessions);
+    const milestones = getMilestones(sessions);
 
     return (
         <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -25,22 +52,26 @@ export default function ProgressScreen() {
 
                 {/* Streak Ring */}
                 <View style={styles.section}>
-                    <StreakRing days={14} />
+                    <StreakRing days={streak} />
                 </View>
 
                 {/* Calendar */}
                 <View style={styles.section}>
-                    <CalendarHeatmap />
+                    <CalendarHeatmap activeDays={activeDays} />
                 </View>
 
                 {/* Lifetime Stats */}
                 <View style={styles.section}>
-                    <LifetimeStats />
+                    <LifetimeStats
+                        totalSessions={sessions.length}
+                        totalMinutes={totalMinutes}
+                        bestStreak={bestStreak}
+                    />
                 </View>
 
                 {/* Milestones */}
                 <View style={styles.section}>
-                    <Milestones />
+                    <Milestones milestones={milestones} />
                 </View>
             </ScrollView>
         </View>
