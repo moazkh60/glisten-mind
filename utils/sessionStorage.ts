@@ -4,6 +4,7 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getHealthStatus, getLatestHeartRate, getLatestHrv, writeBreathingSession } from './healthService';
 
 const SESSIONS_KEY = '@glisten_sessions';
 
@@ -16,10 +17,14 @@ export interface SessionRecord {
     breathCycles: number;
     /** Simulated readiness score (0-100) */
     score: number;
-    /** Simulated HRV in ms */
+    /** HRV in ms */
     hrv: number;
     /** Breaths per minute based on pattern */
     breathRate: number;
+    /** Source of HRV data */
+    hrvSource: 'health' | 'simulated';
+    /** Heart rate in bpm (if available from health service) */
+    heartRate?: number;
 }
 
 /** Generate a unique ID for each session */
@@ -78,6 +83,28 @@ export async function createAndSaveSession(
 ): Promise<SessionRecord> {
     const metrics = computeSessionMetrics(patternId, durationMin, cycleDurationSec);
 
+    // Try to get real health data
+    let hrvSource: 'health' | 'simulated' = 'simulated';
+    let hrv = metrics.hrv;
+    let heartRate: number | undefined;
+
+    try {
+        const status = await getHealthStatus();
+        if (status === 'granted') {
+            const realHrv = await getLatestHrv();
+            if (realHrv !== null && realHrv > 0) {
+                hrv = realHrv;
+                hrvSource = 'health';
+            }
+            const realHr = await getLatestHeartRate();
+            if (realHr !== null && realHr > 0) {
+                heartRate = realHr;
+            }
+        }
+    } catch {
+        // Fall back to simulated
+    }
+
     const record: SessionRecord = {
         id: generateId(),
         patternName,
@@ -85,9 +112,21 @@ export async function createAndSaveSession(
         durationMin,
         completedAt: new Date().toISOString(),
         ...metrics,
+        hrv,
+        hrvSource,
+        heartRate,
     };
 
     await saveSession(record);
+
+    // Write session to health platform
+    try {
+        const sessionStart = new Date(Date.now() - durationMin * 60 * 1000);
+        await writeBreathingSession(durationMin, sessionStart);
+    } catch {
+        // Non-critical
+    }
+
     return record;
 }
 

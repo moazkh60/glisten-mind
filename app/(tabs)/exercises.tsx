@@ -6,7 +6,8 @@ import { ToneRing } from '@/components/dashboard/ToneRing';
 import { Fonts, GlistenColors } from '@/constants/theme';
 import { useSessionHistory } from '@/hooks/useSessionHistory';
 import { getReadinessTitle } from '@/utils/sessionStorage';
-import React from 'react';
+import { useFocusEffect } from 'expo-router';
+import React, { useCallback, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -14,9 +15,23 @@ export default function FlowScreen() {
     const insets = useSafeAreaInsets();
     const { latestSession } = useSessionHistory();
 
-    // Time-based greeting
-    const hour = new Date().getHours();
-    const greeting = hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening';
+    // Time-based greeting — refreshes on focus
+    const [hour, setHour] = useState(() => new Date().getHours());
+
+    useFocusEffect(
+        useCallback(() => {
+            setHour(new Date().getHours());
+        }, [])
+    );
+
+    const greeting =
+        hour >= 5 && hour < 12
+            ? 'Good Morning'
+            : hour >= 12 && hour < 17
+                ? 'Good Afternoon'
+                : hour >= 17 && hour < 21
+                    ? 'Good Evening'
+                    : 'Good Night';
 
     // Time-based mode label
     const mode = hour >= 20 || hour < 6 ? 'NIGHTFALL' : hour >= 17 ? 'DUSK' : 'DAYLIGHT';

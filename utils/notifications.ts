@@ -1,6 +1,6 @@
 /**
  * Daily notification scheduling for Glisten Mind.
- * Sends time-appropriate, rotating mindfulness reminders.
+ * Sends one time-appropriate, rotating mindfulness reminder per day.
  */
 
 import * as Notifications from 'expo-notifications';
@@ -14,14 +14,6 @@ const MORNING_MESSAGES = [
     { title: 'Morning Check-in 🧘', body: 'Your nervous system is ready to find balance.' },
     { title: 'Begin with Clarity 🌿', body: 'A few deep breaths can sharpen your focus for hours.' },
     { title: 'Fresh Start 🌤️', body: 'Your vagus nerve responds best to morning breathwork.' },
-];
-
-const AFTERNOON_MESSAGES = [
-    { title: 'Midday Reset 🔄', body: 'Feeling the afternoon slump? Box breathing can help.' },
-    { title: 'Pause & Breathe 💫', body: 'Even 3 minutes of focused breathing resets your energy.' },
-    { title: 'Afternoon Balance ⚖️', body: 'Your body is asking for a moment of stillness.' },
-    { title: 'Quick Recharge ⚡', body: 'Step away for a breath session — you\'ll thank yourself.' },
-    { title: 'Mind Check 🧠', body: 'A short breathing session now can transform your afternoon.' },
 ];
 
 const EVENING_MESSAGES = [
@@ -40,18 +32,14 @@ const NIGHT_MESSAGES = [
     { title: 'Nightly Calm 🔮', body: 'Let your last waking moments be ones of peace.' },
 ];
 
-function getMessagesForHour(hour: number) {
-    if (hour >= 5 && hour < 12) return MORNING_MESSAGES;
-    if (hour >= 12 && hour < 17) return AFTERNOON_MESSAGES;
-    if (hour >= 17 && hour < 21) return EVENING_MESSAGES;
-    return NIGHT_MESSAGES;
-}
-
-/** Pick a pseudo-random message for a given day + hour combo */
-function pickMessage(hour: number, dayOfYear: number) {
-    const messages = getMessagesForHour(hour);
-    const index = dayOfYear % messages.length;
-    return messages[index];
+/** Pick one slot randomly based on the day of year */
+function pickDailySlot(dayOfYear: number): { hour: number; minute: number; messages: typeof MORNING_MESSAGES } {
+    const slots = [
+        { hour: 8, minute: 30, messages: MORNING_MESSAGES },    // morning
+        { hour: 19, minute: 0, messages: EVENING_MESSAGES },    // evening
+        { hour: 21, minute: 30, messages: NIGHT_MESSAGES },     // night
+    ];
+    return slots[dayOfYear % slots.length];
 }
 
 // ──────── Setup and scheduling ────────
@@ -79,22 +67,13 @@ export async function requestNotificationPermissions(): Promise<boolean> {
 }
 
 /**
- * Schedule 3 daily notifications at strategic times:
- * - 8:30 AM  (morning)
- * - 1:00 PM  (afternoon)
- * - 8:30 PM  (evening)
- *
- * Messages rotate daily using day-of-year as a seed.
+ * Schedule 1 daily notification.
+ * The time slot (morning, evening, or night) rotates each day.
+ * The message within that slot also rotates daily.
  */
-export async function scheduleDailyNotifications(): Promise<void> {
+export async function scheduleDailyNotification(): Promise<void> {
     // Cancel all existing scheduled notifications first
     await Notifications.cancelAllScheduledNotificationsAsync();
-
-    const scheduleHours = [
-        { hour: 8, minute: 30 },   // morning
-        { hour: 13, minute: 0 },   // afternoon
-        { hour: 20, minute: 30 },  // evening
-    ];
 
     // Get day of year for rotation
     const now = new Date();
@@ -102,23 +81,30 @@ export async function scheduleDailyNotifications(): Promise<void> {
     const diff = now.getTime() - startOfYear.getTime();
     const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-    for (const { hour, minute } of scheduleHours) {
-        const { title, body } = pickMessage(hour, dayOfYear);
+    const { hour, minute, messages } = pickDailySlot(dayOfYear);
+    const message = messages[dayOfYear % messages.length];
 
-        await Notifications.scheduleNotificationAsync({
-            content: {
-                title,
-                body,
-                sound: Platform.OS === 'ios' ? 'default' : undefined,
-                data: { screen: 'exercises' },
-            },
-            trigger: {
-                type: Notifications.SchedulableTriggerInputTypes.DAILY,
-                hour,
-                minute,
-            },
-        });
+    // Calculate seconds until the target time today (or tomorrow if passed)
+    const target = new Date(now);
+    target.setHours(hour, minute, 0, 0);
+    let secondsUntil = Math.floor((target.getTime() - now.getTime()) / 1000);
+    if (secondsUntil <= 0) {
+        secondsUntil += 86400; // push to tomorrow
     }
+
+    await Notifications.scheduleNotificationAsync({
+        content: {
+            title: message.title,
+            body: message.body,
+            sound: Platform.OS === 'ios' ? 'default' : undefined,
+            data: { screen: 'exercises' },
+        },
+        trigger: {
+            type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+            seconds: secondsUntil,
+            repeats: false, // we reschedule on each app launch anyway
+        },
+    });
 }
 
 /** Full setup: configure, request permissions, schedule */
@@ -126,6 +112,6 @@ export async function initializeNotifications(): Promise<void> {
     configureNotifications();
     const granted = await requestNotificationPermissions();
     if (granted) {
-        await scheduleDailyNotifications();
+        await scheduleDailyNotification();
     }
 }

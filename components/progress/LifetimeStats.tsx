@@ -20,7 +20,7 @@ interface LifetimeStatsProps {
 export function LifetimeStats({ totalSessions, totalMinutes, bestStreak }: LifetimeStatsProps) {
     const stats: StatItem[] = [
         {
-            label: 'Total Sessions',
+            label: 'Sessions',
             value: totalSessions > 0 ? `${totalSessions}` : '--',
             icon: 'leaf',
             iconColor: '#7BEDA0',

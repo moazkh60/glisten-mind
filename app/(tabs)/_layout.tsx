@@ -3,9 +3,12 @@ import { GlistenColors } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function TabLayout() {
+  const insets = useSafeAreaInsets();
+
   return (
     <Tabs
       screenOptions={{
@@ -23,8 +26,8 @@ export default function TabLayout() {
           backgroundColor: GlistenColors.surface,
           borderTopColor: GlistenColors.surfaceBorder,
           borderTopWidth: 1,
-          height: 70,
-          paddingBottom: 10,
+          height: 60 + (Platform.OS === 'android' ? insets.bottom : 10),
+          paddingBottom: Platform.OS === 'android' ? insets.bottom : 10,
           paddingTop: 10,
           elevation: 0,
         },
@@ -82,7 +85,7 @@ export default function TabLayout() {
 const styles = StyleSheet.create({
   activeIconWrap: {
     backgroundColor: 'rgba(139, 128, 249, 0.12)',
-    borderRadius: 12,
-    padding: 6,
+    borderRadius: 10,
+    padding: 4,
   },
 });

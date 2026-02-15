@@ -1,4 +1,5 @@
 import { BreathingOrb } from '@/components/home/BreathingOrb';
+import { HealthPermissionCard } from '@/components/home/HealthPermissionCard';
 import { HomeHeader } from '@/components/home/HomeHeader';
 import { ReadinessCard } from '@/components/home/ReadinessCard';
 import { TipCard } from '@/components/home/TipCard';
@@ -42,6 +43,9 @@ export default function HomeScreen() {
           hrv={latestSession?.hrv}
           breathRate={latestSession?.breathRate}
         />
+
+        {/* Health platform connection prompt */}
+        <HealthPermissionCard />
 
         {/* Contextual tip */}
         <TipCard />
