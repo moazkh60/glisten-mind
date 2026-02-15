@@ -9,6 +9,7 @@ import {
     DEFAULT_DURATION,
 } from '@/constants/breathingPatterns';
 import { Fonts, GlistenColors } from '@/constants/theme';
+import { speakPhaseCue, speakSessionComplete, stopSpeech } from '@/utils/breathingAudio';
 import { createAndSaveSession, getLatestSession } from '@/utils/sessionStorage';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -28,13 +29,13 @@ function getTimeBasedPattern(): BreathingPattern {
     let targetId: string;
 
     if (hour >= 5 && hour < 12) {
-        targetId = 'coherent';       // morning — balance & energise
+        targetId = 'coherent';
     } else if (hour >= 12 && hour < 17) {
-        targetId = 'box-breathing';  // afternoon — focus
+        targetId = 'box-breathing';
     } else if (hour >= 17 && hour < 21) {
-        targetId = 'vagus-calm';     // evening — wind down
+        targetId = 'vagus-calm';
     } else {
-        targetId = '4-7-8';          // night — sleep prep
+        targetId = '4-7-8';
     }
 
     return BREATHING_PATTERNS.find((p) => p.id === targetId) ?? BREATHING_PATTERNS[0];
@@ -49,6 +50,7 @@ export default function SessionScreen() {
     const [isCompleted, setIsCompleted] = useState(false);
     const [remaining, setRemaining] = useState(DEFAULT_DURATION * 60);
     const [phase, setPhase] = useState<SessionPhase>('idle');
+    const [voiceEnabled, setVoiceEnabled] = useState(true);
 
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const phaseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -63,7 +65,6 @@ export default function SessionScreen() {
                     setPattern(savedPattern);
                 }
             }
-            // If no data, keeps the time-based default
         })();
     }, []);
 
@@ -111,8 +112,14 @@ export default function SessionScreen() {
         const cycle = (currentPhase: SessionPhase) => {
             setPhase(currentPhase);
 
+            // Haptic feedback at phase transitions
             if (currentPhase === 'inhale' || currentPhase === 'exhale') {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            }
+
+            // Voice cue at each phase
+            if (voiceEnabled) {
+                speakPhaseCue(currentPhase);
             }
 
             let duration = 0;
@@ -143,7 +150,7 @@ export default function SessionScreen() {
         };
 
         cycle('inhale');
-    }, [isRunning, pattern]);
+    }, [isRunning, pattern, voiceEnabled]);
 
     useEffect(() => {
         if (isRunning) {
@@ -169,14 +176,26 @@ export default function SessionScreen() {
         if (phaseTimerRef.current) clearTimeout(phaseTimerRef.current);
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
+        // Voice cue for completion
+        if (voiceEnabled) {
+            speakSessionComplete();
+        }
+
         // Save session data
         const cycleDuration = pattern.inhale + pattern.holdIn + pattern.exhale + pattern.holdOut;
         createAndSaveSession(pattern.id, pattern.name, durationMin, cycleDuration);
     };
 
     const handleCompleteSession = () => {
+        stopSpeech();
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
         router.back();
+    };
+
+    const toggleVoice = () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        if (voiceEnabled) stopSpeech();
+        setVoiceEnabled((prev) => !prev);
     };
 
     return (
@@ -186,10 +205,26 @@ export default function SessionScreen() {
         >
             <SessionHeader title={pattern.name} />
 
-            {/* Haptics badge */}
-            <View style={styles.hapticsBadge}>
-                <Ionicons name="radio-outline" size={18} color={GlistenColors.primary} />
-                <Text style={styles.hapticsText}>HAPTICS ENGAGED</Text>
+            {/* Mode badges: Haptics + Voice toggle */}
+            <View style={styles.badgeRow}>
+                <View style={styles.badge}>
+                    <Ionicons name="radio-outline" size={16} color={GlistenColors.primary} />
+                    <Text style={styles.badgeText}>HAPTICS</Text>
+                </View>
+
+                <Pressable
+                    style={[styles.badge, styles.voiceBadge, !voiceEnabled && styles.badgeMuted]}
+                    onPress={toggleVoice}
+                >
+                    <Ionicons
+                        name={voiceEnabled ? 'volume-high' : 'volume-mute'}
+                        size={16}
+                        color={voiceEnabled ? GlistenColors.primary : GlistenColors.textMuted}
+                    />
+                    <Text style={[styles.badgeText, !voiceEnabled && styles.badgeTextMuted]}>
+                        {voiceEnabled ? 'VOICE ON' : 'VOICE OFF'}
+                    </Text>
+                </Pressable>
             </View>
 
             {/* Instruction */}
@@ -201,8 +236,14 @@ export default function SessionScreen() {
                     </>
                 ) : (
                     <>
-                        <Text style={styles.instructionTitle}>Follow the vibrations</Text>
-                        <Text style={styles.instructionSubtitle}>Eyes closed encouraged</Text>
+                        <Text style={styles.instructionTitle}>
+                            {voiceEnabled ? 'Close your eyes & listen' : 'Follow the vibrations'}
+                        </Text>
+                        <Text style={styles.instructionSubtitle}>
+                            {voiceEnabled
+                                ? 'Voice will guide your breathing'
+                                : 'Eyes closed encouraged'}
+                        </Text>
                     </>
                 )}
             </View>
@@ -251,20 +292,42 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
-    hapticsBadge: {
+    badgeRow: {
+        flexDirection: 'row',
+        justifyContent: 'center',
         alignItems: 'center',
-        gap: 6,
+        gap: 12,
         marginTop: 8,
     },
-    hapticsText: {
-        fontSize: 11,
+    badge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 5,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 14,
+        backgroundColor: 'rgba(139, 128, 249, 0.08)',
+    },
+    voiceBadge: {
+        borderWidth: 1,
+        borderColor: 'rgba(139, 128, 249, 0.2)',
+    },
+    badgeMuted: {
+        backgroundColor: 'rgba(255, 255, 255, 0.03)',
+        borderColor: 'rgba(255, 255, 255, 0.08)',
+    },
+    badgeText: {
+        fontSize: 10,
         fontFamily: Fonts?.sansSemiBold,
         color: GlistenColors.primary,
-        letterSpacing: 2,
+        letterSpacing: 1.5,
+    },
+    badgeTextMuted: {
+        color: GlistenColors.textMuted,
     },
     instruction: {
         alignItems: 'center',
-        marginTop: 24,
+        marginTop: 20,
         marginBottom: 8,
         paddingHorizontal: 20,
     },

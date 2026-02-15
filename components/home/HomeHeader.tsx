@@ -1,7 +1,7 @@
 import { Fonts, GlistenColors } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 export function HomeHeader() {
     const [currentTime, setCurrentTime] = useState(new Date());
@@ -29,9 +29,6 @@ export function HomeHeader() {
                     <Text style={styles.dateTime}>{dayName}, {timeStr}</Text>
                 </View>
             </View>
-            <Pressable style={styles.avatar}>
-                <Ionicons name="person-circle-outline" size={32} color={GlistenColors.textSecondary} />
-            </Pressable>
         </View>
     );
 }
@@ -71,14 +68,5 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontFamily: Fonts?.sans,
         color: GlistenColors.textSecondary,
-    },
-    avatar: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
-        backgroundColor: GlistenColors.surfaceGlass,
-        justifyContent: 'center',
-        alignItems: 'center',
-        overflow: 'hidden',
     },
 });

@@ -1,4 +1,5 @@
 import { GlistenColors } from '@/constants/theme';
+import { initializeNotifications } from '@/utils/notifications';
 import {
   Inter_400Regular,
   Inter_500Medium,
@@ -42,6 +43,7 @@ export default function RootLayout() {
   useEffect(() => {
     if (fontsLoaded) {
       SplashScreen.hideAsync();
+      initializeNotifications();
     }
   }, [fontsLoaded]);
 
