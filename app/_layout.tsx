@@ -1,3 +1,4 @@
+import { AnimatedSplash } from '@/components/AnimatedSplash';
 import { GlistenColors } from '@/constants/theme';
 import { initializeNotifications } from '@/utils/notifications';
 import {
@@ -12,8 +13,8 @@ import * as NavigationBar from 'expo-navigation-bar';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
-import { Platform } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { Platform, View } from 'react-native';
 import 'react-native-reanimated';
 
 SplashScreen.preventAutoHideAsync();
@@ -42,12 +43,14 @@ export default function RootLayout() {
     Inter_700Bold,
   });
 
+  const [showSplash, setShowSplash] = useState(true);
+
   useEffect(() => {
     if (fontsLoaded) {
+      // Hide the native splash immediately — our animated one takes over
       SplashScreen.hideAsync();
       initializeNotifications();
 
-      // Set Android system nav bar to match app theme
       if (Platform.OS === 'android') {
         NavigationBar.setBackgroundColorAsync(GlistenColors.surface);
         NavigationBar.setButtonStyleAsync('light');
@@ -55,25 +58,33 @@ export default function RootLayout() {
     }
   }, [fontsLoaded]);
 
+  const handleSplashFinish = useCallback(() => {
+    setShowSplash(false);
+  }, []);
+
   if (!fontsLoaded) {
     return null;
   }
 
   return (
     <ThemeProvider value={GlistenDarkTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-        <Stack.Screen
-          name="session"
-          options={{
-            presentation: 'fullScreenModal',
-            headerShown: false,
-            animation: 'fade',
-          }}
-        />
-      </Stack>
+      <View style={{ flex: 1 }}>
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+          <Stack.Screen
+            name="session"
+            options={{
+              presentation: 'fullScreenModal',
+              headerShown: false,
+              animation: 'fade',
+            }}
+          />
+        </Stack>
+        {showSplash && <AnimatedSplash onFinish={handleSplashFinish} />}
+      </View>
       <StatusBar style="light" />
     </ThemeProvider>
   );
 }
+

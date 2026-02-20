@@ -118,9 +118,7 @@ export default function SessionScreen() {
             }
 
             // Voice cue at each phase
-            if (voiceEnabled) {
-                speakPhaseCue(currentPhase);
-            }
+            speakPhaseCue(currentPhase, voiceEnabled);
 
             let duration = 0;
             let nextPhase: SessionPhase = 'inhale';
@@ -177,9 +175,7 @@ export default function SessionScreen() {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
         // Voice cue for completion
-        if (voiceEnabled) {
-            speakSessionComplete();
-        }
+        speakSessionComplete(voiceEnabled);
 
         // Save session data
         const cycleDuration = pattern.inhale + pattern.holdIn + pattern.exhale + pattern.holdOut;

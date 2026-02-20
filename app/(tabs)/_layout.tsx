@@ -39,7 +39,7 @@ export default function TabLayout() {
           title: 'Home',
           tabBarIcon: ({ color, focused }) => (
             <View style={focused ? styles.activeIconWrap : undefined}>
-              <Ionicons name={focused ? 'moon' : 'moon-outline'} size={24} color={color} />
+              <Ionicons name={focused ? 'home' : 'home-outline'} size={24} color={color} />
             </View>
           ),
         }}

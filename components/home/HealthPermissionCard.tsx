@@ -23,11 +23,11 @@ export function HealthPermissionCard() {
             const healthStatus = await getHealthStatus();
             setStatus(healthStatus);
 
-            // Show card only if health is available and we haven't asked yet
-            if (healthStatus === 'not_asked' && isHealthAvailable() && !wasDismissed) {
-                setDismissed(false);
-            } else {
-                setDismissed(true);
+            // Show card if health is available and either not asked or already granted
+            if (isHealthAvailable() && !wasDismissed) {
+                if (healthStatus === 'not_asked' || healthStatus === 'granted') {
+                    setDismissed(false);
+                }
             }
         })();
     }, []);
@@ -37,7 +37,8 @@ export function HealthPermissionCard() {
         const granted = await requestHealthPermissions();
         setStatus(granted ? 'granted' : 'denied');
         setLoading(false);
-        if (granted) {
+        if (!granted) {
+            // If denied, hide the card
             setDismissed(true);
         }
     };
@@ -50,6 +51,29 @@ export function HealthPermissionCard() {
     if (dismissed) return null;
 
     const platformName = Platform.OS === 'ios' ? 'Apple Health' : 'Health Connect';
+    const isConnected = status === 'granted';
+
+    if (isConnected) {
+        return (
+            <View style={styles.connectedCard}>
+                <View style={styles.header}>
+                    <View style={styles.connectedIconWrap}>
+                        <Ionicons name="checkmark-circle" size={20} color={GlistenColors.scoreGreen} />
+                    </View>
+                    <View style={styles.textWrap}>
+                        <Text style={styles.connectedTitle}>{platformName} Connected</Text>
+                        <Text style={styles.connectedSubtitle}>
+                            Syncing HRV & heart rate data
+                        </Text>
+                    </View>
+                    <Pressable onPress={handleDismiss} hitSlop={12}>
+                        <Ionicons name="close" size={18} color={GlistenColors.textMuted} />
+                    </Pressable>
+                </View>
+            </View>
+        );
+    }
+
     const platformIcon = Platform.OS === 'ios' ? 'heart' : 'fitness';
 
     return (
@@ -93,6 +117,15 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: 'rgba(255, 107, 138, 0.15)',
     },
+    connectedCard: {
+        marginHorizontal: 20,
+        marginTop: 16,
+        padding: 16,
+        borderRadius: 16,
+        backgroundColor: 'rgba(123, 237, 160, 0.06)',
+        borderWidth: 1,
+        borderColor: 'rgba(123, 237, 160, 0.15)',
+    },
     header: {
         flexDirection: 'row',
         alignItems: 'flex-start',
@@ -106,6 +139,14 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
+    connectedIconWrap: {
+        width: 36,
+        height: 36,
+        borderRadius: 10,
+        backgroundColor: 'rgba(123, 237, 160, 0.12)',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
     textWrap: {
         flex: 1,
     },
@@ -114,7 +155,18 @@ const styles = StyleSheet.create({
         fontSize: 15,
         color: GlistenColors.textPrimary,
     },
+    connectedTitle: {
+        fontFamily: Fonts?.sansSemiBold,
+        fontSize: 15,
+        color: GlistenColors.scoreGreen,
+    },
     subtitle: {
+        fontFamily: Fonts?.sans,
+        fontSize: 12,
+        color: GlistenColors.textSecondary,
+        marginTop: 2,
+    },
+    connectedSubtitle: {
         fontFamily: Fonts?.sans,
         fontSize: 12,
         color: GlistenColors.textSecondary,
@@ -140,3 +192,4 @@ const styles = StyleSheet.create({
         letterSpacing: 0.5,
     },
 });
+

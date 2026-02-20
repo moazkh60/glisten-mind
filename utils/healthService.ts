@@ -20,7 +20,14 @@ export type HealthStatus = 'not_asked' | 'granted' | 'denied' | 'unavailable';
 // ──────── Platform availability ────────
 
 let AppleHealth: any = null;
-let HealthConnect: any = null;
+
+// Android Health Connect — named imports
+let HC_getSdkStatus: any = null;
+let HC_SdkAvailabilityStatus: any = null;
+let HC_initialize: any = null;
+let HC_requestPermission: any = null;
+let HC_readRecords: any = null;
+let HC_insertRecords: any = null;
 
 try {
     if (Platform.OS === 'ios') {
@@ -32,7 +39,13 @@ try {
 
 try {
     if (Platform.OS === 'android') {
-        HealthConnect = require('react-native-health-connect');
+        const hc = require('react-native-health-connect');
+        HC_getSdkStatus = hc.getSdkStatus;
+        HC_SdkAvailabilityStatus = hc.SdkAvailabilityStatus;
+        HC_initialize = hc.initialize;
+        HC_requestPermission = hc.requestPermission;
+        HC_readRecords = hc.readRecords;
+        HC_insertRecords = hc.insertRecords;
     }
 } catch {
     // Not available
@@ -57,7 +70,7 @@ async function setHealthStatus(status: HealthStatus): Promise<void> {
 
 export function isHealthAvailable(): boolean {
     if (Platform.OS === 'ios') return AppleHealth !== null;
-    if (Platform.OS === 'android') return HealthConnect !== null;
+    if (Platform.OS === 'android') return HC_getSdkStatus !== null;
     return false;
 }
 
@@ -120,18 +133,18 @@ async function requestIOSPermissions(): Promise<boolean> {
 
 async function requestAndroidPermissions(): Promise<boolean> {
     try {
-        const isAvailable = await HealthConnect.getSdkStatus();
-        if (isAvailable !== HealthConnect.SdkAvailabilityStatus?.SDK_AVAILABLE) {
+        const sdkStatus = await HC_getSdkStatus();
+        if (sdkStatus !== HC_SdkAvailabilityStatus?.SDK_AVAILABLE) {
             await setHealthStatus('unavailable');
             return false;
         }
 
-        await HealthConnect.initialize();
+        await HC_initialize();
 
-        const granted = await HealthConnect.requestPermission([
+        const granted = await HC_requestPermission([
             { accessType: 'read', recordType: 'HeartRate' },
             { accessType: 'read', recordType: 'RestingHeartRate' },
-            { accessType: 'write', recordType: 'MindfulnessSession' },
+            { accessType: 'write', recordType: 'ExerciseSession' },
         ]);
 
         if (granted && granted.length > 0) {
@@ -268,9 +281,9 @@ async function getIOSLatestHeartRate(): Promise<number | null> {
 
 async function getAndroidLatestHeartRate(): Promise<number | null> {
     try {
-        await HealthConnect.initialize();
+        await HC_initialize();
 
-        const result = await HealthConnect.readRecords('HeartRate', {
+        const result = await HC_readRecords('HeartRate', {
             timeRangeFilter: {
                 operator: 'between',
                 startTime: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
@@ -354,12 +367,13 @@ async function writeIOSMindfulSession(startDate: Date, endDate: Date): Promise<v
 
 async function writeAndroidMindfulSession(startDate: Date, endDate: Date): Promise<void> {
     try {
-        await HealthConnect.initialize();
-        await HealthConnect.insertRecords([
+        await HC_initialize();
+        await HC_insertRecords([
             {
-                recordType: 'MindfulnessSession',
+                recordType: 'ExerciseSession',
                 startTime: startDate.toISOString(),
                 endTime: endDate.toISOString(),
+                exerciseType: 74, // EXERCISE_TYPE_YOGA
                 title: 'Glisten Mind Breathing',
             },
         ]);
